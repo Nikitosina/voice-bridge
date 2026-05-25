@@ -40,7 +40,7 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     llm_base_url: str = "http://localhost:11434/v1"
     llm_model: str = "gemma4:31b-cloud"
-    whisper_model_size: str = "small"  # fallback to "base" if small unavailable
+    whisper_model_size: str = "base"  # base for speed, small if quality needed
     piper_model_path: str = "/Users/nikitarat/.piper/models/ru_RU-dmitri-medium.onnx"
     piper_model_config: str = "/Users/nikitarat/.piper/models/ru_RU-dmitri-medium.onnx.json"
     host: str = "0.0.0.0"
@@ -325,6 +325,10 @@ app = FastAPI(title="Voice Bridge Server")
 stt = SpeechToText()
 llm = StreamingLLM()
 tts = PiperTTS()
+
+# Pre-load to avoid 2-second cold-start on first utterance
+stt._load_model()
+tts._load_voice()
 
 
 @app.get("/health")
